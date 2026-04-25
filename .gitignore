@@ -1,0 +1,14 @@
+﻿.idea/
+*.iml
+target/
+*.class
+*.jar
+*.log
+.DS_Store
+node_modules/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.h5
+*.pkl

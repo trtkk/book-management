@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.book.dao.BorrowRecordMapper">
+
+    <resultMap id="BorrowRecordResultMap" type="BorrowRecord">
+        <id property="id" column="id"/>
+        <result property="bookId" column="book_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="borrowDate" column="borrow_date"/>
+        <result property="expectedReturnDate" column="expected_return_date"/>
+        <result property="actualReturnDate" column="actual_return_date"/>
+        <result property="status" column="status"/>
+        <!-- 关联字段 -->
+        <result property="bookTitle" column="book_title"/>
+        <result property="userName" column="user_name"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BorrowRecordResultMap">
+        SELECT br.*, b.title as book_title, u.real_name as user_name
+        FROM borrow_records br
+                 LEFT JOIN books b ON br.book_id = b.id
+                 LEFT JOIN users u ON br.user_id = u.id
+        ORDER BY br.borrow_date DESC
+    </select>
+
+    <select id="findByPage" resultMap="BorrowRecordResultMap">
+        SELECT br.*, b.title as book_title, u.real_name as user_name
+        FROM borrow_records br
+                 LEFT JOIN books b ON br.book_id = b.id
+                 LEFT JOIN users u ON br.user_id = u.id
+        ORDER BY br.borrow_date DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="findByUserId" resultMap="BorrowRecordResultMap">
+        SELECT br.*, b.title as book_title, u.real_name as user_name
+        FROM borrow_records br
+                 LEFT JOIN books b ON br.book_id = b.id
+                 LEFT JOIN users u ON br.user_id = u.id
+        WHERE br.user_id = #{userId}
+        ORDER BY br.borrow_date DESC
+    </select>
+
+    <select id="findByUserIdAndPage" resultMap="BorrowRecordResultMap">
+        SELECT br.*, b.title as book_title, u.real_name as user_name
+        FROM borrow_records br
+                 LEFT JOIN books b ON br.book_id = b.id
+                 LEFT JOIN users u ON br.user_id = u.id
+        WHERE br.user_id = #{userId}
+        ORDER BY br.borrow_date DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="findCurrentBorrows" resultMap="BorrowRecordResultMap">
+        SELECT br.*, b.title as book_title, u.real_name as user_name
+        FROM borrow_records br
+                 LEFT JOIN books b ON br.book_id = b.id
+                 LEFT JOIN users u ON br.user_id = u.id
+        WHERE br.status IN ('BORROWED', 'OVERDUE')
+        ORDER BY br.borrow_date DESC
+    </select>
+
+    <select id="findById" resultMap="BorrowRecordResultMap">
+        SELECT br.*, b.title as book_title, u.real_name as user_name
+        FROM borrow_records br
+                 LEFT JOIN books b ON br.book_id = b.id
+                 LEFT JOIN users u ON br.user_id = u.id
+        WHERE br.id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="BorrowRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO borrow_records (book_id, user_id, borrow_date, expected_return_date, actual_return_date, status)
+        VALUES (#{bookId}, #{userId}, #{borrowDate}, #{expectedReturnDate}, #{actualReturnDate}, #{status})
+    </insert>
+
+    <update id="update" parameterType="BorrowRecord">
+        UPDATE borrow_records
+        SET book_id = #{bookId}, user_id = #{userId}, borrow_date = #{borrowDate},
+            expected_return_date = #{expectedReturnDate}, actual_return_date = #{actualReturnDate},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findOverdueRecords" resultMap="BorrowRecordResultMap">
+        SELECT br.*, b.title as book_title, u.real_name as user_name
+        FROM borrow_records br
+                 LEFT JOIN books b ON br.book_id = b.id
+                 LEFT JOIN users u ON br.user_id = u.id
+        WHERE br.status = 'BORROWED' AND br.expected_return_date &lt; CURDATE()
+    </select>
+
+    <select id="countCurrentBorrowsByUser" resultType="int">
+        SELECT COUNT(*) FROM borrow_records
+        WHERE user_id = #{userId} AND status IN ('BORROWED', 'OVERDUE')
+    </select>
+
+    <select id="findBorrowingByBookAndUser" resultMap="BorrowRecordResultMap">
+        SELECT * FROM borrow_records
+        WHERE book_id = #{bookId} AND user_id = #{userId} AND status IN ('BORROWED', 'OVERDUE')
+            LIMIT 1
+    </select>
+    
+    <select id="countCurrentBorrows" resultType="int">
+        SELECT COUNT(*) FROM borrow_records
+        WHERE status IN ('BORROWED', 'OVERDUE')
+    </select>
+    
+    <delete id="deleteByBookId">
+        DELETE FROM borrow_records WHERE book_id = #{bookId}
+    </delete>
+    
+    <select id="countAllRecords" resultType="int">
+        SELECT COUNT(*) FROM borrow_records
+    </select>
+    
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM borrow_records WHERE user_id = #{userId}
+    </select>
+
+</mapper>
